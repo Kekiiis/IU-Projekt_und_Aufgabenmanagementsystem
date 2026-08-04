@@ -77,7 +77,7 @@ public class AppUser {
         // von JPA benötigt.
     }
 
-    protected AppUser(
+    public AppUser(
         String username,
         String email,
         String passwordHash,
