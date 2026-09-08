@@ -13,7 +13,7 @@ import de.kekiiis.aufgabenmanagement.service.ProjectService;
 
 import jakarta.annotation.security.PermitAll;
 
-@Route("projects")
+@Route(value = "projects", layout = MainLayout.class)
 @PageTitle("Projekte")
 @PermitAll
 public class ProjectListView extends VerticalLayout {

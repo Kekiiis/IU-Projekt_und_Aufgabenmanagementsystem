@@ -11,7 +11,7 @@ import de.kekiiis.aufgabenmanagement.service.ProjectService;
 
 import jakarta.annotation.security.PermitAll;
 
-@Route("archived-projects")
+@Route(value = "archived-projects", layout = MainLayout.class)
 @PageTitle("Archivierte Projekte")
 @PermitAll
 public class ArchivedProjectListView extends VerticalLayout {

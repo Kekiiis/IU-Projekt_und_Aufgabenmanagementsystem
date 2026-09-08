@@ -17,7 +17,7 @@ import jakarta.annotation.security.PermitAll;
 
 import java.util.stream.Collectors;
 
-@Route("archived-projects")
+@Route(value = "archived-projects", layout = MainLayout.class)
 @PageTitle("Archiviertes Projekt")
 @PermitAll
 public class ArchivedProjectDetailView extends VerticalLayout implements HasUrlParameter<Long> {
