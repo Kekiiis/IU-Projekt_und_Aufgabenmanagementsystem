@@ -80,9 +80,9 @@ public class ProjectForm extends FormLayout {
     }
 
     private String getUserDisplayName(AppUser user) {
-        return user.getfirstName()
+        return user.getFirstName()
             + " "
-            + user.getlastName()
+            + user.getLastName()
             + " (" + user.getUsername() + ")"; 
     }
 

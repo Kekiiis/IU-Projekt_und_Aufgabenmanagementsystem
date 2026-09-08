@@ -40,4 +40,22 @@ public class ProjectService {
     public List<Project> findArchivedProjects() {
         return projectRepository.findByArchivedTrue();
     }
+
+    public Project findById(Long id) {
+        return projectRepository.findById(id)
+            .orElseThrow(() ->
+                new IllegalArgumentException(
+                    "Projekt wurde nicht geladen."
+                )
+            );
+    }
+
+    public Project findByIdWithMembers(Long id) {
+        return projectRepository.findWithMembersById(id)
+            .orElseThrow(() ->
+                new IllegalArgumentException(
+                    "Projekt wurde nicht gefunden."
+                )
+            );
+    }
 }

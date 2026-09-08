@@ -94,10 +94,6 @@ public class ProjectListView extends VerticalLayout {
                 project.getProjectLeader().getUsername())
             .setHeader("Projektleitung");
 
-        projectGrid.addColumn(project -> 
-                project.isArchived() ? "Ja" : "Nein")
-            .setHeader("Archiviert");
-
         projectGrid.addComponentColumn(project -> {
             Button archiveButton = new Button("Archivieren");
 

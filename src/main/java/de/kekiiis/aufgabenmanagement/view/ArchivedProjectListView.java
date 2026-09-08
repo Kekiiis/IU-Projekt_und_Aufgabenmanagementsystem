@@ -63,6 +63,18 @@ public class ArchivedProjectListView extends VerticalLayout {
 
             return restoreButton;
         }).setHeader("Aktionen");
+
+        projectGrid.asSingleSelect().addValueChangeListener(event -> {
+            Project selectedProject = event.getValue();
+
+            if (selectedProject != null) {
+                getUI().ifPresent(ui -> 
+                    ui.navigate(
+                        "archived-projects/" + selectedProject.getId()
+                    )
+                );
+            }
+        });
     }
 
     private void refreshGrid() {
