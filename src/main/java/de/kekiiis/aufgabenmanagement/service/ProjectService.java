@@ -27,4 +27,17 @@ public class ProjectService {
         project.setArchived(true);
         projectRepository.save(project);
     }
+
+    public void restore(Project project) {
+        project.setArchived(false);
+        projectRepository.save(project);
+    }
+
+    public List<Project> findActiveProjects() {
+        return projectRepository.findByArchivedFalse();
+    }
+
+    public List<Project> findArchivedProjects() {
+        return projectRepository.findByArchivedTrue();
+    }
 }

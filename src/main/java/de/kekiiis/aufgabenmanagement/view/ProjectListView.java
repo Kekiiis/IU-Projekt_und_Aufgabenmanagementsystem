@@ -2,6 +2,7 @@ package de.kekiiis.aufgabenmanagement.view;
 
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -19,6 +20,7 @@ public class ProjectListView extends VerticalLayout {
     
     private final AppUserService appUserService;
     private final ProjectService projectService;
+    private final ProjectForm projectForm;
     private final Grid<Project> projectGrid = new Grid<>(Project.class, false);
 
     public ProjectListView(ProjectService projectService, AppUserService appUserService) {
@@ -27,18 +29,29 @@ public class ProjectListView extends VerticalLayout {
 
         configureGrid();
 
-        ProjectForm projectForm = new ProjectForm(appUserService.findAll());
+        this.projectForm = new ProjectForm(appUserService.findAll());
 
         projectForm.setVisible(false);
 
         projectForm.addSaveListener(event -> {
             projectService.save(event.getProject());
             projectForm.clearForm();
+            projectGrid.asSingleSelect().clear();
             refreshGrid();
         });
 
         projectForm.addCancelListener(event -> {
             projectForm.clearForm();
+            projectGrid.asSingleSelect().clear();
+        });
+
+        projectGrid.asSingleSelect().addValueChangeListener(event -> {
+            Project selectedProject = event.getValue();
+
+            if (selectedProject != null) {
+                projectForm.setProject(selectedProject);
+                projectForm.setVisible(true);
+            }
         });
 
         Button newProjectButton = new Button(
@@ -54,9 +67,21 @@ public class ProjectListView extends VerticalLayout {
                 projectForm.setVisible(true);
             }
         );
+
+        Button archivedProjectsButton = new Button(
+            "Archivierte Projekte",
+            event -> getUI().ifPresent(ui -> 
+                ui.navigate("archived-projects")
+            )
+        );
         
 
-        add(newProjectButton, projectForm, projectGrid);
+        add(
+            newProjectButton, 
+            archivedProjectsButton, 
+            projectForm, 
+            projectGrid
+        );
 
         refreshGrid();
     }
@@ -72,9 +97,30 @@ public class ProjectListView extends VerticalLayout {
         projectGrid.addColumn(project -> 
                 project.isArchived() ? "Ja" : "Nein")
             .setHeader("Archiviert");
+
+        projectGrid.addComponentColumn(project -> {
+            Button archiveButton = new Button("Archivieren");
+
+            archiveButton.setEnabled(!project.isArchived());
+
+            archiveButton.addClickListener(event -> {
+                projectService.archive(project);
+
+                projectGrid.asSingleSelect().clear();
+                projectForm.clearForm();
+                
+                refreshGrid();
+
+                Notification.show(
+                    "Projekt \"" + project.getName() + "\" wurde archiviert."
+                );
+            });
+
+            return archiveButton;
+        }).setHeader("Aktionen");
     }
 
-    public void refreshGrid() {
-        projectGrid.setItems(projectService.findAll());
+    private void refreshGrid() {
+        projectGrid.setItems(projectService.findActiveProjects());
     }
 }
