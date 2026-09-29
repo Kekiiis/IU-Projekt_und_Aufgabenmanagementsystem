@@ -1,5 +1,6 @@
 package de.kekiiis.aufgabenmanagement.view;
 
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -13,9 +14,16 @@ import jakarta.annotation.security.PermitAll;
 public class HomeView extends VerticalLayout{
     
     public HomeView() {
+
+        Button projects = new Button(
+            "Projekte",
+            click -> getUI().ifPresent(ui -> 
+                ui.navigate("projects")
+            )
+        );
         add(
-            new H1("Projekt- und Aufgabenmanagementsystem"),
-            new Paragraph("Du bist erfolgreich angemeldet.")
+            new Paragraph("Du bist erfolgreich angemeldet."),
+            projects
         );
     }
 }
