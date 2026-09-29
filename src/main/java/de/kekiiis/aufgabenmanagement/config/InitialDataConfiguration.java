@@ -3,15 +3,18 @@ package de.kekiiis.aufgabenmanagement.config;
 import de.kekiiis.aufgabenmanagement.entity.AppUser;
 import de.kekiiis.aufgabenmanagement.entity.Role;
 import de.kekiiis.aufgabenmanagement.repository.AppUserRepository;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class InitialDataConfiguration {
     
     @Bean
+    @Profile("!test")
     CommandLineRunner createInitialAdministrator (
         AppUserRepository appUserRepository,
         PasswordEncoder passwordEncoder
