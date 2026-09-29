@@ -1,6 +1,7 @@
 package de.kekiiis.aufgabenmanagement.view;
 
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -22,6 +23,7 @@ public class ProjectListView extends VerticalLayout {
     private final ProjectService projectService;
     private final ProjectForm projectForm;
     private final Grid<Project> projectGrid = new Grid<>(Project.class, false);
+    private final Dialog projectDialog = new Dialog();
 
     public ProjectListView(ProjectService projectService, AppUserService appUserService) {
         this.projectService = projectService;
@@ -31,16 +33,21 @@ public class ProjectListView extends VerticalLayout {
 
         this.projectForm = new ProjectForm(appUserService.findAll());
 
-        projectForm.setVisible(false);
+        projectDialog.setWidth("500px");
+        projectDialog.setMaxWidth("95vw");
+
+        projectDialog.add(projectForm);
 
         projectForm.addSaveListener(event -> {
             projectService.save(event.getProject());
+            projectDialog.close();
             projectForm.clearForm();
             projectGrid.asSingleSelect().clear();
             refreshGrid();
         });
 
         projectForm.addCancelListener(event -> {
+            projectDialog.close();
             projectForm.clearForm();
             projectGrid.asSingleSelect().clear();
         });
@@ -49,22 +56,22 @@ public class ProjectListView extends VerticalLayout {
             Project selectedProject = event.getValue();
 
             if (selectedProject != null) {
-                projectForm.setProject(selectedProject);
-                projectForm.setVisible(true);
+                Project projectWithMembers = projectService.findByIdWithMembers(selectedProject.getId());
+
+                projectForm.setProject(projectWithMembers);
+                projectDialog.setHeaderTitle("Projekt bearbeiten");
+                projectDialog.open();
             }
         });
 
         Button newProjectButton = new Button(
             "Neues Projekt",
             event -> {
-                Project project = new Project(
-                    "", 
-                    "", 
-                    null
-                );
+                Project project = new Project("", "", null);
 
                 projectForm.setProject(project);
-                projectForm.setVisible(true);
+                projectDialog.setHeaderTitle("Neues Projekt anlegen");
+                projectDialog.open();
             }
         );
 
@@ -79,7 +86,6 @@ public class ProjectListView extends VerticalLayout {
         add(
             newProjectButton, 
             archivedProjectsButton, 
-            projectForm, 
             projectGrid
         );
 

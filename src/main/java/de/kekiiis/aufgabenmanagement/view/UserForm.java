@@ -1,7 +1,5 @@
 package de.kekiiis.aufgabenmanagement.view;
 
-import org.aspectj.weaver.ast.Not;
-
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;

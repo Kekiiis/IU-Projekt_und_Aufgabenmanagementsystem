@@ -11,16 +11,16 @@ import java.util.Optional;
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Override
-    @EntityGraph(attributePaths = {"members"})
+    @EntityGraph(attributePaths = {"members", "projectLeader"})
     List<Project> findAll();
 
-    @EntityGraph(attributePaths = {"members"})
+    @EntityGraph(attributePaths = {"members", "projectLeader"})
     List<Project> findByArchivedFalse();
 
-    @EntityGraph(attributePaths = {"members"})
+    @EntityGraph(attributePaths = {"members", "projectLeader"})
     List<Project> findByArchivedTrue();
 
-    @EntityGraph(attributePaths = {"members"})
+    @EntityGraph(attributePaths = {"members", "projectLeader"})
     Optional<Project> findWithMembersById(Long id);
     
 }

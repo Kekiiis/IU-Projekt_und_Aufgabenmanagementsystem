@@ -6,7 +6,10 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
@@ -17,6 +20,8 @@ import de.kekiiis.aufgabenmanagement.entity.AppUser;
 import de.kekiiis.aufgabenmanagement.entity.Project;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ProjectForm extends FormLayout {
     
@@ -29,6 +34,8 @@ public class ProjectForm extends FormLayout {
     private final MultiSelectComboBox<AppUser> members = 
         new MultiSelectComboBox<>("Mitarbeitende");
 
+    private final Span selectedMembersInfo = new Span();
+
     private final Button saveButton = new Button("Speichern");
     private final Button cancelButton = new Button("Abbrechen");
 
@@ -39,14 +46,49 @@ public class ProjectForm extends FormLayout {
     public ProjectForm(List<AppUser> users) {
 
         configureUserFields(users);
+        members.addValueChangeListener(event -> updateSelectedMembersInfo());
+
+        name.setRequiredIndicatorVisible(true);
+        projectLeader.setRequiredIndicatorVisible(true);
+
+        setResponsiveSteps(
+            new ResponsiveStep("0", 1)
+        );
+
+        name.setWidthFull();
+        description.setWidthFull();
+        projectLeader.setWidthFull();
+        members.setWidthFull();
+
+        HorizontalLayout buttons = new HorizontalLayout(
+            cancelButton,
+            saveButton
+        );
+
+        buttons.setWidthFull();
+        buttons.setJustifyContentMode(HorizontalLayout.JustifyContentMode.END);
+
+        selectedMembersInfo.getStyle()
+            .set("font-size", "var(--lumo-font-size-s)")
+            .set("color","var(--lumo-secondary-text-color)");
+
+        VerticalLayout membersSection = new VerticalLayout(
+            members,
+            selectedMembersInfo
+        );
+
+        membersSection.setPadding(false);
+        membersSection.setSpacing(false);
+        membersSection.setWidthFull();
+        
+        members.setWidthFull();
 
         add(
             name,
             description,
             projectLeader,
-            members,
-            saveButton,
-            cancelButton
+            membersSection,
+            buttons
         );
 
         binder.forField(name)
@@ -86,6 +128,22 @@ public class ProjectForm extends FormLayout {
             + " (" + user.getUsername() + ")"; 
     }
 
+    private void updateSelectedMembersInfo() {
+        Set<AppUser> selectedMembers = members.getValue();
+
+        if (selectedMembers.isEmpty()) {
+            selectedMembersInfo.setText("Keine Mitarbeitenden ausgewählt.");
+            return;
+        }
+
+        String names = selectedMembers.stream()
+            .map(AppUser::getUsername)
+            .sorted(String.CASE_INSENSITIVE_ORDER)
+            .collect(Collectors.joining(", "));
+
+        selectedMembersInfo.setText("Ausgewählt (" + selectedMembers.size() + "): " + names);
+    }
+
     public void setProject(Project project) {
         this.project = project;
         binder.readBean(project);
@@ -94,7 +152,6 @@ public class ProjectForm extends FormLayout {
     public void clearForm() {
         project = null;
         binder.readBean(null);
-        setVisible(false);
     }
 
     private void validateAndSave() {
