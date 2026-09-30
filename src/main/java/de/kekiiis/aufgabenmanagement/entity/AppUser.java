@@ -19,8 +19,6 @@ import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.vaadin.copilot.shaded.checkerframework.common.aliasing.qual.Unique;
-
 @Entity
 @Table(name = "app_users") // Tabelle für die Benutzer
 public class AppUser {

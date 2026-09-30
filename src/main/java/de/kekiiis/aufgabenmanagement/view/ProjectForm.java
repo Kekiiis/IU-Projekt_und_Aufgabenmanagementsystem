@@ -6,10 +6,8 @@ import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.formlayout.FormLayout;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
@@ -20,10 +18,11 @@ import de.kekiiis.aufgabenmanagement.entity.AppUser;
 import de.kekiiis.aufgabenmanagement.entity.Project;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ProjectForm extends FormLayout {
+
+    private boolean editMode = false;
+    private boolean editingAllowed = true;
     
     private final TextField name = new TextField("Name");
     private final TextArea description = new TextArea("Beschreibung");
@@ -34,8 +33,7 @@ public class ProjectForm extends FormLayout {
     private final MultiSelectComboBox<AppUser> members = 
         new MultiSelectComboBox<>("Mitarbeitende");
 
-    private final Span selectedMembersInfo = new Span();
-
+    private final Button editButton = new Button("Bearbeiten");
     private final Button saveButton = new Button("Speichern");
     private final Button cancelButton = new Button("Abbrechen");
 
@@ -46,7 +44,6 @@ public class ProjectForm extends FormLayout {
     public ProjectForm(List<AppUser> users) {
 
         configureUserFields(users);
-        members.addValueChangeListener(event -> updateSelectedMembersInfo());
 
         name.setRequiredIndicatorVisible(true);
         projectLeader.setRequiredIndicatorVisible(true);
@@ -62,24 +59,12 @@ public class ProjectForm extends FormLayout {
 
         HorizontalLayout buttons = new HorizontalLayout(
             cancelButton,
+            editButton,
             saveButton
         );
 
         buttons.setWidthFull();
         buttons.setJustifyContentMode(HorizontalLayout.JustifyContentMode.END);
-
-        selectedMembersInfo.getStyle()
-            .set("font-size", "var(--lumo-font-size-s)")
-            .set("color","var(--lumo-secondary-text-color)");
-
-        VerticalLayout membersSection = new VerticalLayout(
-            members,
-            selectedMembersInfo
-        );
-
-        membersSection.setPadding(false);
-        membersSection.setSpacing(false);
-        membersSection.setWidthFull();
         
         members.setWidthFull();
 
@@ -87,7 +72,7 @@ public class ProjectForm extends FormLayout {
             name,
             description,
             projectLeader,
-            membersSection,
+            members,
             buttons
         );
 
@@ -105,11 +90,31 @@ public class ProjectForm extends FormLayout {
         binder.forField(members)
             .bind(Project::getMembers, Project::setMembers);
 
+        editButton.addClickListener(event -> setEditMode(true));
+
         saveButton.addClickListener(event -> validateAndSave());
 
         cancelButton.addClickListener(event -> 
             fireEvent(new CancelEvent(this))
         );
+    }
+
+    public void setEditMode(boolean editMode) {
+        this.editMode = editMode;
+
+        name.setReadOnly(!editMode);
+        description.setReadOnly(!editMode);
+        projectLeader.setReadOnly(!editMode);
+        members.setReadOnly(!editMode);
+
+        editButton.setVisible(editingAllowed && !editMode);
+        saveButton.setVisible(editMode);
+        cancelButton.setText(editMode ? "Abbrechen" : "Schließen");
+    }
+
+    public void setEditingAllowed(boolean editingAllowed) {
+        this.editingAllowed = editingAllowed;
+        editButton.setVisible(editingAllowed && !editMode);
     }
 
     private void configureUserFields(List<AppUser> users) {
@@ -126,22 +131,6 @@ public class ProjectForm extends FormLayout {
             + " "
             + user.getLastName()
             + " (" + user.getUsername() + ")"; 
-    }
-
-    private void updateSelectedMembersInfo() {
-        Set<AppUser> selectedMembers = members.getValue();
-
-        if (selectedMembers.isEmpty()) {
-            selectedMembersInfo.setText("Keine Mitarbeitenden ausgewählt.");
-            return;
-        }
-
-        String names = selectedMembers.stream()
-            .map(AppUser::getUsername)
-            .sorted(String.CASE_INSENSITIVE_ORDER)
-            .collect(Collectors.joining(", "));
-
-        selectedMembersInfo.setText("Ausgewählt (" + selectedMembers.size() + "): " + names);
     }
 
     public void setProject(Project project) {

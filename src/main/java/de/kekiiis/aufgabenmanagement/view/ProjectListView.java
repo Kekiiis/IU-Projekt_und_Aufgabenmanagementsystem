@@ -14,6 +14,9 @@ import de.kekiiis.aufgabenmanagement.service.ProjectService;
 
 import jakarta.annotation.security.PermitAll;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @Route(value = "projects", layout = MainLayout.class)
 @PageTitle("Projekte")
 @PermitAll
@@ -59,10 +62,21 @@ public class ProjectListView extends VerticalLayout {
                 Project projectWithMembers = projectService.findByIdWithMembers(selectedProject.getId());
 
                 projectForm.setProject(projectWithMembers);
-                projectDialog.setHeaderTitle("Projekt bearbeiten");
+                projectForm.setEditMode(false);
+                projectDialog.setHeaderTitle("Projektdetails");
                 projectDialog.open();
             }
         });
+
+        Authentication authentication = 
+            SecurityContextHolder.getContext().getAuthentication();
+
+        boolean canManageProjects = authentication.getAuthorities().stream()
+            .anyMatch(authority -> 
+                authority.getAuthority().equals("ROLE_ADMIN") || authority.getAuthority().equals("ROLE_PROJECT_MANAGER")
+            );
+
+        projectForm.setEditingAllowed(canManageProjects);
 
         Button newProjectButton = new Button(
             "Neues Projekt",
@@ -70,10 +84,13 @@ public class ProjectListView extends VerticalLayout {
                 Project project = new Project("", "", null);
 
                 projectForm.setProject(project);
+                projectForm.setEditMode(true);
                 projectDialog.setHeaderTitle("Neues Projekt anlegen");
                 projectDialog.open();
             }
         );
+
+        newProjectButton.setVisible(canManageProjects);
 
         Button archivedProjectsButton = new Button(
             "Archivierte Projekte",
@@ -82,6 +99,7 @@ public class ProjectListView extends VerticalLayout {
             )
         );
         
+        archivedProjectsButton.setVisible(canManageProjects);
 
         add(
             newProjectButton, 
@@ -93,6 +111,15 @@ public class ProjectListView extends VerticalLayout {
     }
 
     public void configureGrid() {
+
+        Authentication authentication = 
+            SecurityContextHolder.getContext().getAuthentication();
+
+        boolean canManageProjects = authentication.getAuthorities().stream()
+            .anyMatch(authority -> 
+                authority.getAuthority().equals("ROLE_ADMIN") || authority.getAuthority().equals("ROLE_PROJECT_MANAGER")
+            );
+
         projectGrid.addColumn(Project::getName)
             .setHeader("Name");
 
@@ -110,16 +137,18 @@ public class ProjectListView extends VerticalLayout {
 
                 projectGrid.asSingleSelect().clear();
                 projectForm.clearForm();
-                
                 refreshGrid();
 
                 Notification.show(
                     "Projekt \"" + project.getName() + "\" wurde archiviert."
                 );
             });
-
+            archiveButton.setVisible(canManageProjects);
             return archiveButton;
+            
         }).setHeader("Aktionen");
+
+        
     }
 
     private void refreshGrid() {
