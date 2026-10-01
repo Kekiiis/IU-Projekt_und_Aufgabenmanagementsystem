@@ -61,7 +61,7 @@ public class UserListView extends VerticalLayout {
                 .map(Enum::name)
                 .sorted()
                 .collect(java.util.stream.Collectors.joining(", "))
-        ).setHeader("Rollen");
+        ).setHeader("Rolle");
 
         userGrid.addColumn(user ->
             user.isEnabled() ? "Aktiv" : "Deaktiviert"
