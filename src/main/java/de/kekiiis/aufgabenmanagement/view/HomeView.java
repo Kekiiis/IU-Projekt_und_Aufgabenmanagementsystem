@@ -4,7 +4,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
@@ -38,7 +37,6 @@ public class HomeView extends VerticalLayout{
         userManagementButton.setVisible(canManageUsers);
 
         add(
-            new Paragraph("Du bist erfolgreich angemeldet."),
             projects,
             userManagementButton
         );

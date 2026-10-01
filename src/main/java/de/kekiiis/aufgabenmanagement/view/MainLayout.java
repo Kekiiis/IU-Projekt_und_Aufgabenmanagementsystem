@@ -24,6 +24,7 @@ public class MainLayout extends AppLayout {
 
     private void createHeader() {
         H2 title = new H2("Projekt- und Aufgabenmanagementsystem");
+        H2 space = new H2(" ");
 
         HorizontalLayout header = new HorizontalLayout();
         header.setWidthFull();
@@ -33,20 +34,27 @@ public class MainLayout extends AppLayout {
             .getAuthenticatedUser(UserDetails.class)
             .ifPresent(user -> {
                 Span username =
-                    new Span("Angemeldet als: " + user.getUsername());
+                    new Span(user.getUsername());
 
                 Button logoutButton = new Button(
                     "Abmelden",
                     event -> authenticationContext.logout()
                 );
 
+                Button homeButton = new Button(
+                    "Homepage",
+                    click -> getUI().ifPresent(ui -> ui.navigate(""))
+                );
+
                 header.add(
                     title,
+                    homeButton,
+                    space,
                     username,
                     logoutButton
                 );
 
-                header.expand(title);
+                header.expand(space);
             });
 
         addToNavbar(header);
