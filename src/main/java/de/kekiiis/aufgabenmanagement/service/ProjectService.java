@@ -13,9 +13,14 @@ import java.util.List;
 public class ProjectService {
     
     private final ProjectRepository projectRepository;
+    private final ProjectPermissionService projectPermissionService;
 
-    public ProjectService(ProjectRepository projectRepository) {
+    public ProjectService(
+        ProjectRepository projectRepository,
+        ProjectPermissionService projectPermissionService) {
+            
         this.projectRepository = projectRepository;
+        this.projectPermissionService = projectPermissionService;
     }
 
     public List<Project> findAll() {
@@ -41,6 +46,14 @@ public class ProjectService {
 
     public List<Project> findActiveProjects() {
         return projectRepository.findByArchivedFalse();
+    }
+
+    // Prüft, ob die angemeldete Person Zugriff auf das Projekt hat und gibt nur erlaubte Projekte zurück.
+    public List<Project> findAccessibleActiveProjects() {
+        return projectRepository.findByArchivedFalse().stream()
+            .map(project -> findByIdWithMembers(project.getId()))
+            .filter(projectPermissionService::canAccessProject)
+            .toList();
     }
 
     public List<Project> findArchivedProjects() {
