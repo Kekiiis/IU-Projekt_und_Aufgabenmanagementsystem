@@ -33,7 +33,7 @@ public class AppUserService {
     }
 
     @RolesAllowed("ADMIN")
-    @Transactional  // sorgt dafür, dass die Datenbankoperation innerhalb der Transaktion ausgeführt wird. Sollte das Speichern fehlschlagen, wird die Transaktion zurückgerollt.
+    @Transactional  // Sorgt dafür, dass die Datenbankoperation innerhalb der Transaktion ausgeführt wird. Sollte das Speichern fehlschlagen, wird die Transaktion zurückgerollt.
     public AppUser createUser(
         String username,
         String email,
@@ -72,14 +72,14 @@ public class AppUserService {
             );
         }
 
-        //E-Mail-Format überprüfen
+        // E-Mail-Format überprüfen
         if(!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             throw new IllegalArgumentException(
                 "Bitte gib eine gültige E-Mail-Adresse ein."
             );
         }
 
-        //Passwortlänge prüfen
+        // Passwortlänge prüfen
         if(password.length() < 12) {
             throw new IllegalArgumentException(
                 "Das Passwort muss mindestens 12 Zeichen lang sein."

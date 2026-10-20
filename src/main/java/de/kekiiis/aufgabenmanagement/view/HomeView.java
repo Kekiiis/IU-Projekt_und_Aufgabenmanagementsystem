@@ -12,7 +12,7 @@ import jakarta.annotation.security.PermitAll;
 
 @Route(value = "", layout = MainLayout.class)
 @PageTitle("Startseite")
-@PermitAll // jeder angemeldete Benutzer darf die Startseite sehen.
+@PermitAll // Jeder angemeldete Benutzer darf die Startseite sehen.
 public class HomeView extends VerticalLayout{
     
     public HomeView() {

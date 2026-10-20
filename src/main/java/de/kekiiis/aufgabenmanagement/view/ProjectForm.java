@@ -153,7 +153,6 @@ public class ProjectForm extends FormLayout {
     }
 
     // Events des Formulars 
-
     public static abstract class ProjectFormEvent
             extends ComponentEvent<ProjectForm> {
 
@@ -189,7 +188,6 @@ public class ProjectForm extends FormLayout {
     }
 
     // Listener 
-
     public Registration addSaveListener(
             ComponentEventListener<SaveEvent> listener
     ) {

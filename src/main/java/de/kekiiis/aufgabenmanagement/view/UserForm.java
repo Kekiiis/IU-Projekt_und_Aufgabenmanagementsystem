@@ -64,6 +64,7 @@ public class UserForm extends Dialog {
         getFooter().add(cancelButton, saveButton);
     }
 
+    // Einstellungen für die Felder bei der Benutzererstellung.
     private void configureFields() {
         username.setRequired(true);
         username.setMaxLength(100);
@@ -88,6 +89,7 @@ public class UserForm extends Dialog {
         role.setEmptySelectionAllowed(false);
     }
 
+    // Übersetzt die Rollen auf Deutsch.
     private String getRoleLabel(Role role) {
         return switch (role) {
             case ADMIN -> "Administrator:in";
@@ -96,6 +98,7 @@ public class UserForm extends Dialog {
         };
     }
 
+    // Speichert neue Benutzer.
     private boolean saveUser() {
         if (username.isEmpty()
             || email.isEmpty()
@@ -104,15 +107,18 @@ public class UserForm extends Dialog {
             || password.isEmpty()
             || role.isEmpty()) {
 
-            showError("Bitte fülle alle Pflichtfelder aus.");
+            // Fehlermeldung, wenn mind. eines der Pflichtfelder nicht ausgefüllt ist.
+            showError("Bitte fülle alle Pflichtfelder aus.");   
             return false;
         }
 
+        // Fehlermeldung, wenn keine gültige E-Mail-Adresse eingegeben wird.
         if (email.isInvalid()) {
-            showError("Bitte gib eine gültige E-Mail-Adresse ein.");
+            showError("Bitte gib eine gültige E-Mail-Adresse ein.");    
             return false;
         }
 
+        // Fehlermeldung, wenn das Passwort zu kurz ist.
         if (password.getValue().length() < 12) {
             showError("Das Passwort muss mindestens 12 Zeichen lang sein.");
             return false;
@@ -128,6 +134,7 @@ public class UserForm extends Dialog {
                 role.getValue()
             );
 
+            // Notifikation, wenn das Benutzerkonto erfolgreich angelegt wurde.
             Notification.show(
                 "Benutzerkonto wurde angelegt.",
                 3000,
@@ -141,6 +148,7 @@ public class UserForm extends Dialog {
         }
     }
 
+    // Zeigt Fehlermeldung.
     private void showError(String message) {
         Notification notification = Notification.show(
             message,

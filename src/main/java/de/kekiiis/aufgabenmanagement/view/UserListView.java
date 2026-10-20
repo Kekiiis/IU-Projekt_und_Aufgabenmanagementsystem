@@ -42,6 +42,7 @@ public class UserListView extends VerticalLayout {
         refreshGrid();
     }
 
+    // Setzt die Benutzerübersicht zusammen.
     private void configureGrid() {
 
         userGrid.addColumn(AppUser::getUsername)
@@ -68,6 +69,7 @@ public class UserListView extends VerticalLayout {
         ).setHeader("Status");
     }
 
+    // Aktualisiert die Benutzerübersicht.
     private void refreshGrid() {
         userGrid.setItems(appUserService.findAll());
     }

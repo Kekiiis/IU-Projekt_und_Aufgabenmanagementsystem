@@ -14,7 +14,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @Route("login")
 @PageTitle("Anmelden")
-@AnonymousAllowed // wird benötigt, damit nicht eingeloggte Benutzer die Login Seite aufrufen können.
+@AnonymousAllowed // Wird benötigt, damit nicht eingeloggte Benutzer die Login Seite aufrufen können.
 public class LoginView extends VerticalLayout
         implements BeforeEnterObserver {
     

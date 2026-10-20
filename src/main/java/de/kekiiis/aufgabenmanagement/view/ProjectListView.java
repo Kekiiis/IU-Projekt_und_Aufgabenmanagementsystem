@@ -244,7 +244,7 @@ public class ProjectListView extends VerticalLayout {
         refreshGrid();
     }
 
-    // Projektübersicht
+    // Setzt die Projektübersicht zusammen.
     public void configureGrid() {
 
         Authentication authentication = 
@@ -287,7 +287,7 @@ public class ProjectListView extends VerticalLayout {
         
     }
 
-    // Aufgabenübersicht
+    // Setzt die Aufgabenübersicht zusammen.
     public void configureTaskGrid() {
 
         taskGrid.addColumn(Task::getTitle)
@@ -354,7 +354,7 @@ public class ProjectListView extends VerticalLayout {
         });
     }
 
-    // Übersetzt die Statuswerte auf Deutsch.
+    // Holt die Statuswerte der Aufgaben.
     private String getTaskStatusLabel(TaskStatus status) {
         return switch (status) {
             case OPEN -> "Offen";

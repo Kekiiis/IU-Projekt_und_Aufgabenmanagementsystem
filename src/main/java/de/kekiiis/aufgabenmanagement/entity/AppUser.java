@@ -41,7 +41,7 @@ public class AppUser {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    // gehashtes Passwort
+    // Gehashtes Passwort
     @NotBlank
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -58,7 +58,7 @@ public class AppUser {
     @Column(name = "last_name", nullable = false, length = 100)
     private String lastName;
 
-    // aktiver User
+    // Aktiver User
     @Column(nullable = false)
     private boolean enabled = true;
 
