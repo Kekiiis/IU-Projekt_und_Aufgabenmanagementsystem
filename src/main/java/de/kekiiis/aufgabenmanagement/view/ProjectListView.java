@@ -5,8 +5,10 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
@@ -22,6 +24,8 @@ import jakarta.annotation.security.PermitAll;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
 
 @Route(value = "projects", layout = MainLayout.class)
 @PageTitle("Projekte")
@@ -45,6 +49,9 @@ public class ProjectListView extends VerticalLayout {
     private Project currentProject;
     private static final String NEUE_AUFGABE_TEXT = "Neue Aufgabe";
     private final Button newTaskButton = new Button(NEUE_AUFGABE_TEXT);
+    private final H3 progressHeading = new H3("Projektfortschritt");
+    private final ProgressBar progressBar = new ProgressBar(0, 100, 0);
+    private final Span progressText = new Span("0 von 0 Aufgaben erledigt. (0%)");
 
     public ProjectListView(
         ProjectService projectService, 
@@ -68,10 +75,15 @@ public class ProjectListView extends VerticalLayout {
 
         VerticalLayout dialogContent = new VerticalLayout(
             projectForm,
+            progressHeading,
+            progressBar,
+            progressText,
             new H3("Aufgaben"),
             newTaskButton,
             taskGrid
         );
+
+        progressBar.setWidthFull();
 
         dialogContent.setPadding(false);
         dialogContent.setSpacing(true);
@@ -170,7 +182,10 @@ public class ProjectListView extends VerticalLayout {
                 projectForm.setProject(projectWithMembers);
                 projectForm.setEditMode(false);
 
-                taskGrid.setItems(taskService.findByProject(projectWithMembers));
+                List<Task> tasks = taskService.findByProject(projectWithMembers);
+
+                taskGrid.setItems(tasks);
+                updateProjectProgress(tasks);
 
                 projectDialog.setHeaderTitle("Projektdetails");
 
@@ -178,6 +193,7 @@ public class ProjectListView extends VerticalLayout {
             }
         });
 
+        // Überprüft die Berechtigung des Benutzers.
         Authentication authentication = 
             SecurityContextHolder.getContext().getAuthentication();
 
@@ -189,6 +205,12 @@ public class ProjectListView extends VerticalLayout {
 
         projectForm.setEditingAllowed(canManageProjects);
 
+        // Projektfortschritt nur für Projektleiter und Admins sichtbar.
+        progressHeading.setVisible(canManageProjects);
+        progressBar.setVisible(canManageProjects);
+        progressText.setVisible(canManageProjects);
+
+        // Button für die Erstellung eines neuen Projektes.
         Button newProjectButton = new Button(
             "Neues Projekt",
             event -> {
@@ -203,6 +225,7 @@ public class ProjectListView extends VerticalLayout {
 
         newProjectButton.setVisible(canManageProjects);
 
+        // Button für die Ansicht der archivierten Aufgaben.
         Button archivedProjectsButton = new Button(
             "Archivierte Projekte",
             event -> getUI().ifPresent(ui -> 
@@ -221,6 +244,7 @@ public class ProjectListView extends VerticalLayout {
         refreshGrid();
     }
 
+    // Projektübersicht
     public void configureGrid() {
 
         Authentication authentication = 
@@ -263,6 +287,7 @@ public class ProjectListView extends VerticalLayout {
         
     }
 
+    // Aufgabenübersicht
     public void configureTaskGrid() {
 
         taskGrid.addColumn(Task::getTitle)
@@ -272,16 +297,16 @@ public class ProjectListView extends VerticalLayout {
 
             ComboBox<TaskStatus> statusBox = new ComboBox<>();
 
-            statusBox.setItems(TaskStatus.values());                    // stellt die drei Statuswerte zur Auswahl.
-            statusBox.setItemLabelGenerator(this::getTaskStatusLabel);  // zeigt die deutschen Bezeichnungen der drei Statuswerte an.
-            statusBox.setValue(task.getTaskStatus());                   // wählt automatisch den aktuell gespeicherten Status.
+            statusBox.setItems(TaskStatus.values());                    // Stellt die drei Statuswerte zur Auswahl.
+            statusBox.setItemLabelGenerator(this::getTaskStatusLabel);  // Zeigt die deutschen Bezeichnungen der drei Statuswerte an.
+            statusBox.setValue(task.getTaskStatus());                   // Wählt automatisch den aktuell gespeicherten Status.
             statusBox.setWidth("180px");
 
             statusBox.setReadOnly(
                 currentProject == null 
                 || !projectPermissionService.canEditTasks(currentProject));
 
-            statusBox.addValueChangeListener(event -> {                 // reagiert darauf, wenn der Status geändert wird.
+            statusBox.addValueChangeListener(event -> {                 // Reagiert darauf, wenn der Status geändert wird.
                 
                 if (!event.isFromClient()) {                            // event.isFromClient() verhindert, dass das anfängliche Setzen des Status bereits einen Speichervorgang auslöst.
                     return;
@@ -303,7 +328,9 @@ public class ProjectListView extends VerticalLayout {
                 }
 
                 task.setTaskStatus(newStatus);
-                taskService.save(task);                                 // speichert die Änderung dauerhaft in der Datenbank.
+                taskService.save(task);                                 // Speichert die Änderung dauerhaft in der Datenbank.
+
+                refreshTaskGrid();                                      // Projektfortschritt wird direkt nach jeder Statusänderung neu berechnet. 
 
                 Notification.show("Aufgabenstatus wurde aktualisiert.");
             });
@@ -327,7 +354,7 @@ public class ProjectListView extends VerticalLayout {
         });
     }
 
-    // übersetzt die Statuswerte auf Deutsch.
+    // Übersetzt die Statuswerte auf Deutsch.
     private String getTaskStatusLabel(TaskStatus status) {
         return switch (status) {
             case OPEN -> "Offen";
@@ -336,13 +363,38 @@ public class ProjectListView extends VerticalLayout {
         };
     }
 
+    // Aktualisiert die Projektübersicht.
     private void refreshGrid() {
         projectGrid.setItems(projectService.findAccessibleActiveProjects());
     }
 
+    // Aktualisiert die Aufgabenübersicht.
     private void refreshTaskGrid() {
         if (currentProject != null) {
-            taskGrid.setItems(taskService.findByProject(currentProject));
+            List<Task> tasks = taskService.findByProject(currentProject);
+
+            taskGrid.setItems(tasks);
+            updateProjectProgress(tasks);
         }
+    }
+
+    // Zählt alle Aufgaben und ermittelt, wie viele davon den Status CLOSED haben.
+    private void updateProjectProgress(List<Task> tasks) {
+        int totalTasks = tasks.size();
+
+        long completedTasks = tasks.stream()
+            .filter(task -> task.getTaskStatus() == TaskStatus.CLOSED)
+            .count();
+
+        int progressPercentage = totalTasks == 0
+            ? 0
+            : (int) Math.round(completedTasks * 100.0 / totalTasks);
+
+        progressBar.setValue(progressPercentage);
+
+        progressText.setText(
+            completedTasks + " von " + totalTasks 
+            + " Aufgaben erledigt. (" + progressPercentage + "%)" 
+        );
     }
 }

@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith (MockitoExtension.class)
@@ -34,6 +35,8 @@ class TaskServiceTest {
 
     @InjectMocks 
     private TaskService taskService;
+
+    private String keineBerechtigungText = "Keine Berechtigung zur Bearbeitung der Aufgaben.";
 
     // Test: Prüft, dass mit Berechtigung die Aufgabe gelesen werden kann.
     @Test
@@ -91,7 +94,7 @@ class TaskServiceTest {
             .thenReturn(Optional.of(project));
 
         doThrow(new AccessDeniedException(
-            "Keine Berechtigung zur Bearbeitung der Aufgaben."
+            keineBerechtigungText
         )).when(projectPermissionService)
             .requireTaskEditPermission(project);
 
@@ -101,5 +104,72 @@ class TaskServiceTest {
         );
 
         verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    // Test: Prüft, dass ein Benutzer ohne Berechtigung eine bestehende Aufgabe nicht verändern kann.
+    @Test
+    void unauthorizedUserCannotEditExistingTask() {
+        Project project = mock(Project.class);
+        Task existingTask = mock(Task.class);
+        Task changedTask = mock(Task.class);
+
+        when(changedTask.getId()).thenReturn(1L);
+        when(changedTask.getProject()).thenReturn(project);
+        when(project.getId()).thenReturn(2L);
+
+        when(taskRepository.findById(1L))
+            .thenReturn(Optional.of(existingTask));
+
+        when(existingTask.getProject()).thenReturn(project);
+
+        when(projectRepository.findWithMembersById(2L))
+            .thenReturn(Optional.of(project));
+
+        doThrow(new AccessDeniedException(
+            keineBerechtigungText
+        )).when(projectPermissionService)
+            .requireTaskEditPermission(project);
+
+        assertThrows(
+            AccessDeniedException.class, 
+            () -> taskService.save(changedTask)
+        );
+
+        verify(existingTask, never()).setTitle(any());
+        verify(existingTask, never()).setDescription(any());
+        verify(existingTask, never()).setTaskStatus(any());
+
+        verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    // Test: Prüft, dass TaskService eine verweigerte Berechtiung berücksichtigt und die Aufgabe nicht aus der Datenbank löscht.
+    @Test 
+    void unauthorizedUserCannotDeleteTask() {
+        Project project = mock(Project.class);
+        Task existingTask = mock(Task.class);
+        Task taskToDelete = mock(Task.class);
+
+        when(taskToDelete.getId()).thenReturn(1L);
+
+        when(taskRepository.findById(1L))
+            .thenReturn(Optional.of(existingTask));
+
+        when(existingTask.getProject()).thenReturn(project);
+        when(project.getId()).thenReturn(2L);
+
+        when(projectRepository.findWithMembersById(2L))
+            .thenReturn(Optional.of(project));
+        
+        doThrow(new AccessDeniedException(
+            keineBerechtigungText
+        )).when(projectPermissionService)
+            .requireTaskEditPermission(project);
+
+        assertThrows(
+            AccessDeniedException.class, 
+            () -> taskService.delete(taskToDelete)
+        );
+
+        verify(taskRepository, never()).delete(any(Task.class));
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
+import java.util.Comparator;
 
 @Service 
 public class TaskService {
@@ -48,7 +49,10 @@ public class TaskService {
             );
         }
 
-        return taskRepository.findByProject(projectWithMembers);
+        return taskRepository.findByProject(projectWithMembers)
+            .stream()
+            .sorted(Comparator.comparing(Task::getId))
+            .toList();
     }
 
     @Transactional
